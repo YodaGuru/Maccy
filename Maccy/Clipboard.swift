@@ -35,8 +35,28 @@ class Clipboard {
 
   private var sourceApp: NSRunningApplication? { NSWorkspace.shared.frontmostApplication }
 
-  init() {
+      init() {
     changeCount = pasteboard.changeCount
+
+    // Handle incoming remote clipboard data safely on the Main Actor thread
+    NotificationCenter.default.addObserver(forName: .didReceiveRemoteClipboard, object: nil, queue: .main) { [weak self] notification in
+      guard let self = self, let content = notification.object as? String else { return }
+      
+      Task { @MainActor in
+        // Temporarily blind Maccy's clipboard monitoring loop
+        Defaults[.ignoreEvents] = true
+        
+        // Set the text safely to the macOS pasteboard tier
+        self.pasteboard.clearContents()
+        self.pasteboard.setString(content, forType: .string)
+        
+        // Manually call Maccy's checker method to parse this into the history UI/Database
+        self.checkForChangesInPasteboard()
+        
+        // Re-enable the clipboard monitor loop right after
+        Defaults[.ignoreEvents] = false
+      }
+    }
   }
 
   func onNewCopy(_ hook: @escaping OnNewCopyHook) {

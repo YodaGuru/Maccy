@@ -5,12 +5,12 @@ import Settings
 import SwiftUI
 
 @Observable
-class AppState: Sendable {
+final class AppState: Sendable {
   static let shared = AppState(history: History.shared, footer: Footer())
 
   let multiSelectionEnabled = false
 
-  var appDelegate: AppDelegate?
+  @MainActor var appDelegate: AppDelegate?
   var popup: Popup
   var history: History
   var footer: Footer
@@ -165,3 +165,4 @@ class AppState: Sendable {
     NSApp.terminate(self)
   }
 }
+

@@ -98,7 +98,7 @@ class SlideoutController {
   var state: SlideoutState = .closed
   var resizingMode: ResizingMode = .none
 
-  var nswindow: NSWindow? {
+  @MainActor var nswindow: NSWindow? {
     return AppState.shared.appDelegate?.panel
   }
 
@@ -144,6 +144,7 @@ class SlideoutController {
     return newSize
   }
 
+  @MainActor
   func togglePreview(trigger: SlideoutToggleTrigger = .manual) {
     if !state.isOpen {
       let navigator = AppState.shared.navigator

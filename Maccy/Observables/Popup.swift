@@ -72,7 +72,7 @@ class Popup {
     NSEvent.removeMonitor(eventsMonitor)
   }
 
-  func open(height: CGFloat, at popupPosition: PopupPosition = Defaults[.popupPosition]) {
+  @MainActor func open(height: CGFloat, at popupPosition: PopupPosition = Defaults[.popupPosition]) {
     AppState.shared.appDelegate?.panel.open(height: height, at: popupPosition)
   }
 
@@ -81,11 +81,11 @@ class Popup {
     KeyboardShortcuts.enable(.popup)
   }
 
-  func close() {
+  @MainActor func close() {
     AppState.shared.appDelegate?.panel.close()  // close() calls reset
   }
 
-  func isClosed() -> Bool {
+  @MainActor func isClosed() -> Bool {
     AppState.shared.appDelegate?.panel.isPresented != true
   }
 
@@ -104,13 +104,13 @@ class Popup {
     return height
   }
 
-  func resize(height: CGFloat) {
+  @MainActor func resize(height: CGFloat) {
     self.height = height + headerHeight + extraTopHeight + extraBottomHeight + footerHeight
     AppState.shared.appDelegate?.panel.verticallyResize(to: preferredHeight(for: self.height))
     needsResize = false
   }
 
-  private func handleFirstKeyDown() {
+  @MainActor private func handleFirstKeyDown() {
     if isClosed() {
       open(height: height)
       state = .opening
@@ -122,7 +122,7 @@ class Popup {
     close()
   }
 
-  private func handleEvent(_ event: NSEvent) -> NSEvent? {
+  @MainActor private func handleEvent(_ event: NSEvent) -> NSEvent? {
     switch event.type {
     case .keyDown:
       return handleKeyDown(event)
@@ -133,7 +133,7 @@ class Popup {
     }
   }
 
-  private func handleKeyDown(_ event: NSEvent) -> NSEvent? {
+  @MainActor private func handleKeyDown(_ event: NSEvent) -> NSEvent? {
     if isHotKeyCode(Int(event.keyCode)) {
       if let item = History.shared.pressedShortcutItem {
         AppState.shared.navigator.select(item: item)

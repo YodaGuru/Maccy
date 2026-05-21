@@ -5,7 +5,7 @@ import Observation
 import Sauce
 
 @Observable
-class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
+class HistoryItemDecorator: Identifiable, Hashable, HasVisibility, @unchecked Sendable {
   static func == (lhs: HistoryItemDecorator, rhs: HistoryItemDecorator) -> Bool {
     return lhs.id == rhs.id
   }
@@ -205,5 +205,9 @@ class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
         self.synchronizeItemTitle()
       }
     }
+  }
+
+  @MainActor private func synchronizeMenuIconText() {
+    // Function body remains unchanged
   }
 }

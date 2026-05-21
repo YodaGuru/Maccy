@@ -37,7 +37,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Bridge FloatingPanel via AppDelegate.
     AppState.shared.appDelegate = self
 
-    Clipboard.shared.onNewCopy { History.shared.add($0) }
+    Clipboard.shared.onNewCopy { item in 
+      // 1. Add it to the local UI history like normal
+      History.shared.add(item)
+      
+      // 2. Safely grab the text contents and broadcast it to the network
+      // (Using Maccy's first string content type)
+      if let textContent = item.contents.first(where: { $0.type == NSPasteboard.PasteboardType.string.rawValue }),
+         let data = textContent.value,
+         let stringContent = String(data: data, encoding: .utf8) {
+SyncEngine.shared.broadcastItem(stringContent)
+      }
+    }
     Clipboard.shared.start()
 
     Task {
@@ -89,6 +100,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
+    SyncEngine.shared.startServer()
+
     migrateUserDefaults()
     disableUnusedGlobalHotkeys()
 
@@ -160,12 +173,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   private func synchronizeMenuIconText() {
     _ = withObservationTracking {
       AppState.shared.menuIconText
-    } onChange: {
+    } onChange: { [weak self] in // 1. Capture self weakly here
       DispatchQueue.main.async {
         if Defaults[.showRecentCopyInMenuBar] {
-          self.statusItem.button?.title = AppState.shared.menuIconText
+          self?.statusItem.button?.title = AppState.shared.menuIconText
         }
-        self.synchronizeMenuIconText()
+        self?.synchronizeMenuIconText() // 2. Use optional chaining here
       }
     }
   }
