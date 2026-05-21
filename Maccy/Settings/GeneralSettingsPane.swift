@@ -91,6 +91,12 @@ struct GeneralSettingsPane: View {
         .onChange(refreshModifiers)
         .fixedSize()
 
+        // ADD YOUR NEW SYNC TOGGLE RIGHT HERE:
+        Defaults.Toggle(key: .syncEnabled) {
+          Text("Sync clipboard across local network")
+        }
+        .fixedSize()
+
         Text(String(
           format: NSLocalizedString("Modifiers", tableName: "GeneralSettings", comment: ""),
           copyModifier, pasteModifier, pasteWithoutFormatting
